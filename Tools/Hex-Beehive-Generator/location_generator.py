@@ -5,8 +5,8 @@ import itertools
 import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-lat", "--lat", help="latitude", type=float, default=0)
-parser.add_argument("-lon", "--lon", help="longitude", type=float, default=0)
+parser.add_argument("-lat", "--lat", help="latitude", type=float, required=True)
+parser.add_argument("-lon", "--lon", help="longitude", type=float, required=True)
 parser.add_argument("-st", "--steps", help="steps", default=5, type=int)
 parser.add_argument("-lp", "--leaps", help="like 'steps' but for workers instead of scans", default=3, type=int)
 parser.add_argument("-o", "--output", default="../../beehive.sh", help="output file for the script")

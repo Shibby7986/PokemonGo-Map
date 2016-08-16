@@ -25,7 +25,7 @@ python location_generator.py -lat -31.4519729369 -lon 152.898706714 -st 3 -lp 8 
 python location_generator.py -st 3 -lp 8 --accounts C:\Users\dano7\Downloads\accounts.csv --windows --installdir=" C:\Git\PokemonGo-Map" -man -cl C:\Git\PokemonGo-Map\loc.csv 
 
 
-usage: location_generator.py [-h] [-lat LAT] [-lon LON] [-st STEPS] [-lp LEAPS] [-o OUTPUT] [--accounts ACCOUNTS] [--auth AUTH] [-man USE MANUAL LOC] [-cl CORDINATES LOCATION]
+usage: location_generator.py [-h] -lat LAT -lon LON [-st STEPS] [-lp LEAPS] [-o OUTPUT] [--accounts ACCOUNTS] [--auth AUTH] [-man USE MANUAL LOC] [-cl CORDINATES LOCATION]
 
   -lat LAT, --lat LAT   
 latitude

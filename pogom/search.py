@@ -194,9 +194,9 @@ def search_overseer_thread(args, method, new_location_queue, pause_bit, encrypti
     # Create a search_worker_thread per account
     log.info('Starting search worker threads')
     #Get the required number of accounts and start a serach worker thread for each account
-    for i, account in enumerate(PoGoAccount.get_active_unused(args.num_accounts, True)):
-        log.debug('Starting search worker thread %d for user %s', i, account['username'])
-        workerId = 'Worker {:03}'.format(i)
+    for count, account in enumerate(PoGoAccount.get_active_unused(args.num_accounts, True)):
+        log.debug('Starting search worker thread %d for user %s', count, account['username'])
+        workerId = 'Worker {:03}'.format(count)
         threadStatus[workerId] = {
             'type': 'Worker',
             'message': 'Creating thread...',
@@ -208,10 +208,10 @@ def search_overseer_thread(args, method, new_location_queue, pause_bit, encrypti
         }
 
         t = Thread(target=search_worker_thread,
-                   name='search-worker-{}'.format(i),
+                   name='search-worker-{}'.format(count),
                    args=(args, account, search_items_queue, pause_bit,
                          encryption_lib_path, threadStatus[workerId],
-                         db_updates_queue, wh_queue))
+                         db_updates_queue, wh_queue, count))
         t.daemon = True
         t.start()
 
@@ -417,9 +417,9 @@ def get_sps_location_list(args, current_location, sps_scan_current):
     return retset
 
 
-def search_worker_thread(args, account, search_items_queue, pause_bit, encryption_lib_path, status, dbq, whq):
+def search_worker_thread(args, account, search_items_queue, pause_bit, encryption_lib_path, status, dbq, whq, count):
 
-    stagger_thread(args, account)
+    stagger_thread(args, count)
 
     log.debug('Search worker thread starting')
 
@@ -450,7 +450,7 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                 if status['fail'] >= args.max_failures:
                     status['message'] = 'Worker {} failed more than {} scans; possibly banned account.'.format(account['username'], args.max_failures)
                     log.error(status['message'])
-                    deactivate_account(account['Username'])
+                    deactivate_account(account['username'])
                     account = PoGoAccount.get_active_unused(1, True)[0]
                     raise Exception('Username Changed')
 
@@ -672,10 +672,10 @@ def calc_distance(pos1, pos2):
 
 
 # Delay each thread start time so that logins only occur ~1s
-def stagger_thread(args, account):
-    if args.accounts.index(account) == 0:
+def stagger_thread(args, count):
+    if args.num_accounts == 1:
         return  # No need to delay the first one
-    delay = args.accounts.index(account) + ((random.random() - .5) / 2)
+    delay = count + ((random.random() - .5) / 2)
     log.debug('Delaying thread startup for %.2f seconds', delay)
     time.sleep(delay)
 

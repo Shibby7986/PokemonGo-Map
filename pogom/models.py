@@ -483,18 +483,18 @@ class GymDetails(BaseModel):
 
 
 class PoGoAccount(BaseModel):
-    Username = CharField(primary_key=True)
-    Password = CharField()
-    Auth_service = CharField()
-    Active = BooleanField(default=True)
-    In_use = BooleanField(default=False)
+    username = CharField(primary_key=True)
+    password = CharField()
+    auth_service = CharField()
+    active = BooleanField(default=True)
+    in_use = BooleanField(default=False)
 
     @staticmethod
     def get_active_unused(count, use):
         query = (PoGoAccount
                 .select()
-                .where((PoGoAccount.Active == True) &
-                      (PoGoAccount.In_use == False))
+                .where((PoGoAccount.active == True) &
+                      (PoGoAccount.in_use == False))
                 .dicts())
                  
 
@@ -502,8 +502,8 @@ class PoGoAccount(BaseModel):
         for i, account in enumerate(query):
             accounts.append(account)
             if use:
-                log.info("seting " + account['Username'] + " to in use.")
-                use_account(account['Username'])    
+                log.info("seting " + account['username'] + " to in use.")
+                use_account(account['username'])    
             if i == count-1:
                 break
 
@@ -513,18 +513,18 @@ def insert_accounts():
     for account in args.accounts:
         log.info("Provessing "+account['username'])
         try:
-            query = PoGoAccount.create(Username=account['username'],Password=account['password'],Auth_service=account['auth_service'])
+            query = PoGoAccount.create(username=account['username'],password=account['password'],auth_service=account['auth_service'])
             query.execute()
         except:
             log.info(account['username']+" already exists reseting password and status")
-            query = PoGoAccount.update(Password=account['password'],Auth_service=account['auth_service'],Active=True).where(PoGoAccount.Username==account['username'])
+            query = PoGoAccount.update(password=account['password'],auth_service=account['auth_service'],active=True).where(PoGoAccount.username==account['username'])
             query.execute()
         else:
             log.info("added" +account['username'])
         
 def deactivate_account(faulty_account):
     log.info("Deactivating " + faulty_account)
-    query = PoGoAccount.update(Active = False,In_use=False).where(PoGoAccount.Username == faulty_account)
+    query = PoGoAccount.update(active = False,in_use=False).where(PoGoAccount.username == faulty_account)
     query.execute()
                
 
@@ -532,16 +532,16 @@ def remove_accounts():
     if args.remove_user != None:
         for account in args.remove_user:
             log.info("Removing "+account+" from the db.")
-            query = (PoGoAccount.delete().where(PoGoAccount.Username == account))
+            query = (PoGoAccount.delete().where(PoGoAccount.username == account))
             query.execute()
 
 
 def use_account(account):
-    query = PoGoAccount.update(In_use=True).where(PoGoAccount.Username == account)
+    query = PoGoAccount.update(in_use=True).where(PoGoAccount.username == account)
     query.execute()
 
 def reset_account_use():
-    query = PoGoAccount.update(In_use=False)
+    query = PoGoAccount.update(in_use=False)
     query.execute()
 
 

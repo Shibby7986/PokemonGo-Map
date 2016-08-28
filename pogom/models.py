@@ -550,11 +550,7 @@ class PoGoAccount(BaseModel):
 
     @staticmethod
     def update_proxy(username, new_proxy):
-        query = (PoGoAccount
-                 .update(proxy=new_proxy)
-                 .where(PoGoAccount.username == username)
-                 .execute()
-                 )        
+        PoGoAccount.update(proxy=new_proxy).where(PoGoAccount.username == username).execute()
 
     @staticmethod
     def get_num_accounts():
@@ -619,6 +615,7 @@ def insert_accounts():
                     done = True
                 except:
                     log.info("Issue updating accounts, trying again")
+
 
 
 def deactivate_account(faulty_account):

@@ -194,7 +194,8 @@ def search_overseer_thread(args, method, new_location_queue, pause_bit, encrypti
     # Create a search_worker_thread per account
     log.info('Starting search worker threads')
     #Get the required number of accounts and start a serach worker thread for each account
-    for count, account in enumerate(PoGoAccount.get_active_unused(args.num_accounts, True)):
+    for count in range(args.num_accounts):
+        account = PoGoAccount.get_active_unused(1, True)[0]
         log.debug('Starting search worker thread %d for user %s', count, account['username'])
         workerId = 'Worker {:03}'.format(count)
         threadStatus[workerId] = {

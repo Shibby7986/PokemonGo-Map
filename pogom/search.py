@@ -240,9 +240,10 @@ def search_overseer_thread(args, method, new_location_queue, pause_bit, encrypti
         t.daemon = True
         t.start()
 
-    # Get the required number of accounts and start a serach worker thread for each account
     log.info('Starting search worker threads')
-    for count, account in enumerate(PoGoAccount.get_active_unused(args.num_accounts, True)):
+    #Get the required number of accounts and start a serach worker thread for each account
+    for count in range(args.num_accounts):
+        account = PoGoAccount.get_active_unused(1, True)[0]
 
         # Set proxy to account, using round rubin
         using_proxy = ''

@@ -565,14 +565,25 @@ class PoGoAccount(BaseModel):
         return accounts
 
 def insert_accounts():
-    for account in args.accounts:
-        log.info("Provessing "+account['username'])
+    print(len(args.username))
+    print(args.username)
+    for count in range(0, len(args.username)-1):
+        newuser = args.username[count]
+        if len(args.password)>1:
+            newpass = args.password[count]
+        else:
+            newpass = args.password[0]
+        if len(args.auth_service)>1:
+            newauth = args.auth_service[count]
+        else:
+            newauth = args.auth_service[0]
+        log.info("Checking "+args.username[count])
         try:
-            query = PoGoAccount.create(username=account['username'],password=account['password'],auth_service=account['auth_service'])
+            query = PoGoAccount.create(username=newuser,password=newpass,auth_service=newauth)
             query.execute()
         except:
-            log.info(account['username']+" already exists reseting password and status")
-            query = PoGoAccount.update(password=account['password'],auth_service=account['auth_service'],active=True).where(PoGoAccount.username==account['username'])
+            log.info(args.username[count]+" already exists reseting password and status")
+            query = PoGoAccount.update(password=newpass,auth_service=newauth,active=True).where(PoGoAccount.username==newuser)
             query.execute()
         else:
             log.info("added" +account['username'])

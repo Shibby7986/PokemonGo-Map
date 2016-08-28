@@ -499,6 +499,10 @@ class PoGoAccount(BaseModel):
                  
 
         accounts = []
+        while len(query) == 0:
+            log.info("no available accounts, please add more")
+            time.sleep(180)
+            
         for i, account in enumerate(query):
             accounts.append(account)
             if use:
@@ -510,28 +514,17 @@ class PoGoAccount(BaseModel):
         return accounts
 
 def insert_accounts():
-    print(len(args.username))
-    print(args.username)
-    for count in range(len(args.username)):
-        newuser = args.username[count]
-        if len(args.password)>1:
-            newpass = args.password[count]
-        else:
-            newpass = args.password[0]
-        if len(args.auth_service)>1:
-            newauth = args.auth_service[count]
-        else:
-            newauth = args.auth_service[0]
-        log.info("Checking "+args.username[count])
+    for account in args.accounts:
+        log.info("Checking "+account['username'])
         try:
-            query = PoGoAccount.create(username=newuser,password=newpass,auth_service=newauth)
+            query = PoGoAccount.create(username=account['username'],password=account['password'],auth_service=account['auth_service'])
             query.execute()
+            log.info("added" + account['username'])
         except:
-            log.info(args.username[count]+" already exists reseting password and status")
-            query = PoGoAccount.update(password=newpass,auth_service=newauth,active=True).where(PoGoAccount.username==newuser)
+            log.info(account['username'] + " already exists reseting password and status")
+            query = PoGoAccount.update(password=account['password'],auth_service=account['auth_service'],active=True).where(PoGoAccount.username==account['username'])
             query.execute()
-        else:
-            log.info("added" +account['username'])
+            
         
 def deactivate_account(faulty_account):
     log.info("Deactivating " + faulty_account)

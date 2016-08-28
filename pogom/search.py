@@ -523,6 +523,10 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                     status['fail'] += 1
                     status['message'] = 'Map parse failed at {:6f},{:6f}, abandoning location. {} may be banned.'.format(step_location[0], step_location[1], account['username'])
                     log.exception(status['message'])
+                except TypeError:
+                    status['fail'] += 1
+                    status['message'] = 'Map parse failed at {:6f},{:6f}, abandoning location. {} may be invalid login.'.format(step_location[0], step_location[1], account['username'])
+                    log.exception(status['message'])
 
                 # Get detailed information about gyms
                 if args.gym_info and parsed:

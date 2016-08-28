@@ -165,8 +165,10 @@ def main():
     app.set_current_location(position)
 
     #Add and remove accounts as per args
-    insert_accounts()
-    remove_accounts()
+    if not args.username == None:
+        insert_accounts()
+    if not args.remove_user == None:
+        remove_accounts()
     
     #Reseting accounts to not be inuse when a new webserver is started
     if not args.no_server:

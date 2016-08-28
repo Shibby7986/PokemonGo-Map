@@ -617,7 +617,6 @@ def insert_accounts():
                     log.info("Issue updating accounts, trying again")
 
 
-
 def deactivate_account(faulty_account):
     log.info("Deactivating " + faulty_account)
     PoGoAccount.update(active = False, in_use=False, time_deactivated=datetime.utcnow()).where(PoGoAccount.username == faulty_account).execute()

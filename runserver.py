@@ -171,7 +171,7 @@ def main():
         remove_accounts()
     
     #Reseting accounts to not be inuse when a new webserver is started
-    if not args.no_server:
+    if not args.clear_usage:
         log.info("seting all accounts to not in use")
         reset_account_use()
         

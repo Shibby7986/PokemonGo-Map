@@ -567,7 +567,7 @@ class PoGoAccount(BaseModel):
 def insert_accounts():
     print(len(args.username))
     print(args.username)
-    for count in range(0, len(args.username)-1):
+    for count in range(len(args.username)):
         newuser = args.username[count]
         if len(args.password)>1:
             newpass = args.password[count]

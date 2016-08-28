@@ -56,7 +56,7 @@ def get_args():
                         help='Username to be removed from db')
     parser.add_argument('-na', '--num-accounts', help='Number of accounts to use', type=int,
                         default=1)
-    parser.add_argument('-cb', '--clear-bans', help='reset all accounts to be active',
+    parser.add_argument('-cu', '--clear-usage', help='reset all accounts to available for use',
                         action='store_true', default=False)
     parser.add_argument('-l', '--location', type=parse_unicode,
                         help='Location, can be an address or coordinates')

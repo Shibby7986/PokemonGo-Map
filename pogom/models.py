@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 import logging
 import calendar
@@ -588,7 +589,6 @@ class PoGoAccount(BaseModel):
                 use_account(account['username'], account['session'])
             if i == count - 1:
                 break
-
         return accounts
 
     @staticmethod
@@ -600,10 +600,7 @@ class PoGoAccount(BaseModel):
         for account in query:
             if not account['in_use']:  # If the account is not set to in_use recreate the session
                 log.info('usage was reset refreshing session')
-                query = (PoGoAccount
-                         .update(in_use=True, session=current_session)
-                         .where(PoGoAccount.username == username)
-                         .execute())
+                PoGoAccount.update(in_use=True, session=current_session).where(PoGoAccount.username == username).execute()
             return account['session'] == current_session
 
 
@@ -611,50 +608,41 @@ def insert_accounts():
     for account in args.accounts:
         log.info("Checking " + account['username'])
         try:
-            query = PoGoAccount.create(username=account['username'], password=account['password'], auth_service=account['auth_service'])
+            PoGoAccount.create(username=account['username'], password=account['password'], auth_service=account['auth_service'])
             log.info("Added " + account['username'])
         except:
             done = False
             while not done:
                 try:
                     log.info(account['username'] + " already exists reseting password and status")
-                    query = PoGoAccount.update(password=account['password'], auth_service=account['auth_service'], active=True).where(PoGoAccount.username == account['username'])
-                    query.execute()
+                    PoGoAccount.update(password=account['password'], auth_service=account['auth_service'], active=True).where(PoGoAccount.username == account['username']).execute()
                     done = True
                 except:
                     log.info("Issue updating accounts, trying again")
-    
+
 
 def deactivate_account(faulty_account):
     log.info("Deactivating " + faulty_account)
-    query = PoGoAccount.update(active=False, in_use=False, time_deactivated=datetime.utcnow()).where(PoGoAccount.username == faulty_account)
-    query.execute()
+    PoGoAccount.update(active = False, in_use=False, time_deactivated=datetime.utcnow()).where(PoGoAccount.username == faulty_account).execute()
 
 
-def update_use_account(account):
-    query = (PoGoAccount
-             .update(in_use=True, last_scan_time=datetime.utcnow())
-             .where(PoGoAccount.username == account)
-             .execute()
-             )
+def update_use_account(username):
+    PoGoAccount.update(in_use = True, last_scan_time=datetime.utcnow()).where(PoGoAccount.username == username).execute()
 
-
+	
 def remove_accounts():
     if args.remove_user is not None:
-        for account in args.remove_user:
-            log.info("Removing " + account + " from the db.")
-            query = (PoGoAccount.delete().where(PoGoAccount.username == account))
-            query.execute()
+        for user in args.remove_user:
+            log.info("Removing " + user + " from the db.")
+            PoGoAccount.delete().where(PoGoAccount.username == user).execute()
 
 
-def use_account(account, newSession):
-    query = PoGoAccount.update(in_use=True, session=newSession).where(PoGoAccount.username == account)
-    query.execute()
+def use_account(username, new_session):
+    PoGoAccount.update(in_use=True, session=new_session).where(PoGoAccount.username == username).execute()
 
 
 def reset_account_use():
-    query = PoGoAccount.update(in_use=False)
-    query.execute()
+    PoGoAccount.update(in_use=False).execute()
 
 
 def hex_bounds(center, steps):

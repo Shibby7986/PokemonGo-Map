@@ -482,6 +482,69 @@ class GymDetails(BaseModel):
     last_scanned = DateTimeField(default=datetime.utcnow)
 
 
+class PoGoAccount(BaseModel):
+    Username = CharField(primary_key=True)
+    Password = CharField()
+    Auth_service = CharField()
+    Active = BooleanField(default=True)
+    In_use = BooleanField(default=False)
+
+    @staticmethod
+    def get_active_unused(count, use):
+        query = (PoGoAccount
+                .select()
+                .where((PoGoAccount.Active == True) &
+                      (PoGoAccount.In_use == False))
+                .dicts())
+                 
+
+        accounts = []
+        for i, account in enumerate(query):
+            accounts.append(account)
+            if use:
+                log.info("seting " + account['Username'] + " to in use.")
+                use_account(account['Username'])    
+            if i == count-1:
+                break
+
+        return accounts
+
+def insert_accounts():
+    for account in args.accounts:
+        log.info("Provessing "+account['username'])
+        try:
+            query = PoGoAccount.create(Username=account['username'],Password=account['password'],Auth_service=account['auth_service'])
+            query.execute()
+        except:
+            log.info(account['username']+" already exists reseting password and status")
+            query = PoGoAccount.update(Password=account['password'],Auth_service=account['auth_service'],Active=True).where(PoGoAccount.Username==account['username'])
+            query.execute()
+        else:
+            log.info("added" +account['username'])
+        
+def deactivate_account(faulty_account):
+    log.info("Deactivating " + faulty_account)
+    query = PoGoAccount.update(Active = False,In_use=False).where(PoGoAccount.Username == faulty_account)
+    query.execute()
+               
+
+def remove_accounts():
+    if args.remove_user != None:
+        for account in args.remove_user:
+            log.info("Removing "+account+" from the db.")
+            query = (PoGoAccount.delete().where(PoGoAccount.Username == account))
+            query.execute()
+
+
+def use_account(account):
+    query = PoGoAccount.update(In_use=True).where(PoGoAccount.Username == account)
+    query.execute()
+
+def reset_account_use():
+    query = PoGoAccount.update(In_use=False)
+    query.execute()
+
+
 def hex_bounds(center, steps):
     # Make a box that is (70m * step_limit * 2) + 70m away from the center point
     # Rationale is that you need to travel
@@ -827,13 +890,13 @@ def bulk_upsert(cls, data):
 def create_tables(db):
     db.connect()
     verify_database_schema(db)
-    db.create_tables([Pokemon, Pokestop, Gym, ScannedLocation, GymDetails, GymMember, GymPokemon, Trainer], safe=True)
+    db.create_tables([Pokemon, Pokestop, Gym, ScannedLocation, GymDetails, GymMember, GymPokemon, Trainer, PoGoAccount], safe=True)
     db.close()
 
 
 def drop_tables(db):
     db.connect()
-    db.drop_tables([Pokemon, Pokestop, Gym, ScannedLocation, Versions, GymDetails, GymMember, GymPokemon, Trainer], safe=True)
+    db.drop_tables([Pokemon, Pokestop, Gym, ScannedLocation, Versions, GymDetails, GymMember, GymPokemon, Trainer, PoGoAccount], safe=True)
     db.close()
 
 

@@ -23,7 +23,7 @@ from pogom.app import Pogom
 from pogom.utils import get_args, get_encryption_lib_path
 
 from pogom.search import search_overseer_thread
-from pogom.models import init_database, create_tables, drop_tables, Pokemon, db_updater, clean_db_loop
+from pogom.models import init_database, create_tables, drop_tables, Pokemon, db_updater, clean_db_loop, insert_accounts, remove_accounts, reset_account_use, PoGoAccount
 from pogom.webhook import wh_updater
 
 # Currently supported pgoapi
@@ -160,6 +160,19 @@ def main():
     create_tables(db)
 
     app.set_current_location(position)
+
+    #Add and remove accounts as per args
+    insert_accounts()
+    remove_accounts()
+    
+    #Reseting accounts to not be inuse when a new webserver is started
+    if not args.no_server:
+        log.info("seting all accounts to not in use")
+        reset_account_use()
+        
+    #Display the number of active acounts and display it to the user
+    num_active = str(len(PoGoAccount.get_active_unused(float("inf"), False)))
+    log.info("There are " + num_active + " active unused accounts")
 
     # Control the search status (running or not) across threads
     pause_bit = Event()

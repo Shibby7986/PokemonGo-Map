@@ -35,7 +35,7 @@ from pgoapi.utilities import f2i
 from pgoapi import utilities as util
 from pgoapi.exceptions import AuthException
 
-from .models import parse_map, Pokemon, hex_bounds, GymDetails, parse_gyms
+from .models import parse_map, Pokemon, hex_bounds, GymDetails, parse_gyms, PoGoAccount, deactivate_account, use_account, PoGoAccount
 from .transform import generate_location_steps
 from .fakePogoApi import FakePogoApi
 from .utils import now
@@ -193,7 +193,8 @@ def search_overseer_thread(args, method, new_location_queue, pause_bit, encrypti
 
     # Create a search_worker_thread per account
     log.info('Starting search worker threads')
-    for i, account in enumerate(args.accounts):
+    #Get the required number of accounts and start a serach worker thread for each account
+    for i, account in enumerate(PoGoAccount.get_active_unused(args.num_accounts, True)):
         log.debug('Starting search worker thread %d for user %s', i, account['username'])
         workerId = 'Worker {:03}'.format(i)
         threadStatus[workerId] = {
@@ -447,13 +448,11 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
 
                 # If this account has been messing up too hard, let it rest
                 if status['fail'] >= args.max_failures:
-                    end_sleep = now() + (3600 * 2)
-                    long_sleep_started = time.strftime('%H:%M:%S')
-                    while now() < end_sleep:
-                        status['message'] = 'Worker {} failed more than {} scans; possibly banned account. Sleeping for 2 hour sleep as of {}'.format(account['username'], args.max_failures, long_sleep_started)
-                        log.error(status['message'])
-                        time.sleep(300)
-                    break  # exit this loop to have the API recreated
+                    status['message'] = 'Worker {} failed more than {} scans; possibly banned account.'.format(account['username'], args.max_failures)
+                    log.error(status['message'])
+                    deactivate_account(account['Username'])
+                    account = PoGoAccount.get_active_unused(1, True)[0]
+                    raise Exception('Username Changed')
 
                 while pause_bit.is_set():
                     status['message'] = 'Scanning paused'

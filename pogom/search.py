@@ -372,7 +372,7 @@ def get_hex_location_list(args, current_location):
         step_distance = 0.070
 
     # update our list of coords
-    locations = generate_location_steps(current_location, args.step_limit, step_distance)
+    locations = list(generate_location_steps(current_location, args.step_limit, step_distance))
 
     # In hex "spawns only" mode, filter out scan locations with no history of pokemons
     if args.spawnpoints_only and not args.no_pokemon:
@@ -506,10 +506,11 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
 
             # The forever loop for the searches
             while True:
-                #checks if the account is used by someone else
+                # Checks if the account is used by someone else
                 if not PoGoAccount.valid_session(account['username'],account['session']):
                     account = PoGoAccount.get_active_unused(1, True)[0]
                     break
+
                 # If this account has been messing up too hard, let it rest
                 if status['fail'] >= args.max_failures:
                     status['message'] = 'Worker {} failed more than {} scans; possibly banned account.'.format(account['username'], args.max_failures)

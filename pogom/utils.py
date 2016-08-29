@@ -224,7 +224,7 @@ def get_args():
         args.accounts = []
 
         # Make the accounts list
-        if not args.username == None:
+        if args.username is not None:
             for i, username in enumerate(args.username):
                 args.accounts.append({'username': username, 'password': args.password[i], 'auth_service': args.auth_service[i]})
 

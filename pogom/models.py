@@ -266,7 +266,7 @@ class Pokemon(BaseModel):
         # This loop is about as non-pythonic as you can get, I bet.
         # Oh well.
         filtered = []
-        hex_locations = generate_location_steps(center, steps, 0.07)
+        hex_locations = list(generate_location_steps(center, steps, 0.07))
         for hl in hex_locations:
             for idx, sp in enumerate(s):
                 if geopy.distance.distance(hl, (sp['lat'], sp['lng'])).meters <= 70:
@@ -425,7 +425,6 @@ class ScannedLocation(BaseModel):
                         (ScannedLocation.longitude >= swLng) &
                         (ScannedLocation.latitude <= neLat) &
                         (ScannedLocation.longitude <= neLng))
-                 .order_by(ScannedLocation.last_modified.asc())
                  .dicts())
 
         return list(query)
@@ -489,65 +488,65 @@ class PoGoAccount(BaseModel):
     auth_service = CharField()
     active = BooleanField(default=True)
     in_use = BooleanField(default=False)
-    session = CharField(index=True,default=generate_session())
+    session = CharField(index=True, default=generate_session())
 
     @staticmethod
     def get_active_unused(count, use):
         query = (PoGoAccount
-                .select()
-                .where((PoGoAccount.active == True) &
-                      (PoGoAccount.in_use == False))
-                .dicts())
-                 
+                 .select()
+                 .where((PoGoAccount.active == True) &
+                        (PoGoAccount.in_use == False))
+                 .dicts())
 
         accounts = []
         while len(query) == 0:
             log.info("no available accounts, please add more")
             time.sleep(180)
-            
+
         for i, account in enumerate(query):
             accounts.append(account)
             if use:
                 accounts[i].update({'session': generate_session()})
                 log.info("seting " + account['username'] + " to in use.")
-                use_account(account['username'],account['session'])    
-            if i == count-1:
+                use_account(account['username'], account['session'])
+            if i == count - 1:
                 break
 
         return accounts
+
     @staticmethod
-    def valid_session(username,session):
+    def valid_session(username, session):
         query = (PoGoAccount
-                .select()
-                .where(PoGoAccount.username == username)
-                .dicts())
+                 .select()
+                 .where(PoGoAccount.username == username)
+                 .dicts())
         for account in query:
             return account['session'] == session
-        
+
 
 def insert_accounts():
     for account in args.accounts:
-        log.info("Checking "+account['username'])
+        log.info("Checking " + account['username'])
         try:
-            query = PoGoAccount.create(username=account['username'],password=account['password'],auth_service=account['auth_service'])
+            query = PoGoAccount.create(username=account['username'], password=account['password'], auth_service=account['auth_service'])
             query.execute()
             log.info("added" + account['username'])
         except:
             log.info(account['username'] + " already exists reseting password and status")
-            query = PoGoAccount.update(password=account['password'],auth_service=account['auth_service'],active=True).where(PoGoAccount.username==account['username'])
+            query = PoGoAccount.update(password=account['password'], auth_service=account['auth_service'], active=True).where(PoGoAccount.username == account['username'])
             query.execute()
-            
-        
+
+
 def deactivate_account(faulty_account):
     log.info("Deactivating " + faulty_account)
-    query = PoGoAccount.update(active = False,in_use=False).where(PoGoAccount.username == faulty_account)
+    query = PoGoAccount.update(active=False, in_use=False).where(PoGoAccount.username == faulty_account)
     query.execute()
-               
+
 
 def remove_accounts():
-    if args.remove_user != None:
+    if args.remove_user is not None:
         for account in args.remove_user:
-            log.info("Removing "+account+" from the db.")
+            log.info("Removing " + account + " from the db.")
             query = (PoGoAccount.delete().where(PoGoAccount.username == account))
             query.execute()
 
@@ -555,6 +554,7 @@ def remove_accounts():
 def use_account(account, newSession):
     query = PoGoAccount.update(in_use=True, session=newSession).where(PoGoAccount.username == account)
     query.execute()
+
 
 def reset_account_use():
     query = PoGoAccount.update(in_use=False)

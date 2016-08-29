@@ -161,18 +161,18 @@ def main():
 
     app.set_current_location(position)
 
-    #Add and remove accounts as per args
-    if not args.username == None:
+    # Add and remove accounts as per args
+    if args.username is not None:
         insert_accounts()
-    if not args.remove_user == None:
+    if args.remove_user is not None:
         remove_accounts()
-    
-    #Reseting accounts to not be inuse when a new webserver is started
+
+    # Reseting accounts to not be inuse when a new webserver is started
     if args.clear_usage:
         log.info("seting all accounts to not in use")
         reset_account_use()
-        
-    #Display the number of active acounts and display it to the user
+
+    # Display the number of active acounts and display it to the user
     num_active = str(len(PoGoAccount.get_active_unused(float("inf"), False)))
     log.info("There are " + num_active + " active unused accounts")
 

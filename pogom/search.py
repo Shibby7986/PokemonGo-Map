@@ -35,7 +35,7 @@ from pgoapi.utilities import f2i
 from pgoapi import utilities as util
 from pgoapi.exceptions import AuthException
 
-from .models import parse_map, Pokemon, hex_bounds, GymDetails, parse_gyms, PoGoAccount, deactivate_account, use_account, PoGoAccount
+from .models import parse_map, Pokemon, hex_bounds, GymDetails, parse_gyms, PoGoAccount, deactivate_account
 from .transform import generate_location_steps
 from .fakePogoApi import FakePogoApi
 from .utils import now

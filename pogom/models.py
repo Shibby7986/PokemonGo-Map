@@ -586,13 +586,13 @@ class PoGoAccount(BaseModel):
             if i == count - 1:
                 break
         return accounts
-		
+
     @staticmethod
-    def valid_session(username,session):
+    def valid_session(username, session):
         query = (PoGoAccount
-                .select()
-                .where(PoGoAccount.username == username)
-                .dicts())
+                 .select()
+                 .where(PoGoAccount.username == username)
+                 .dicts())
         for account in query:
             return account['session'] == session
 

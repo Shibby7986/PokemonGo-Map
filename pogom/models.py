@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from base64 import b64encode
 
 from . import config
-from .utils import get_pokemon_name, get_pokemon_rarity, get_pokemon_types, get_args
+from .utils import get_pokemon_name, get_pokemon_rarity, get_pokemon_types, get_args, generate_session
 from .transform import transform_from_wgs_to_gcj, get_new_coords, generate_location_steps
 from .customLog import printPokemon
 
@@ -488,6 +488,7 @@ class PoGoAccount(BaseModel):
     auth_service = CharField()
     active = BooleanField(default=True)
     in_use = BooleanField(default=False)
+    session = CharField(index=True,default=generate_session())
 
     @staticmethod
     def get_active_unused(count, use):
@@ -506,8 +507,9 @@ class PoGoAccount(BaseModel):
         for i, account in enumerate(query):
             accounts.append(account)
             if use:
+                accounts[i].update({'session': generate_session()})
                 log.info("seting " + account['username'] + " to in use.")
-                use_account(account['username'])    
+                use_account(account['username'],account['session'])    
             if i == count-1:
                 break
 
@@ -540,8 +542,8 @@ def remove_accounts():
             query.execute()
 
 
-def use_account(account):
-    query = PoGoAccount.update(in_use=True).where(PoGoAccount.username == account)
+def use_account(account, newSession):
+    query = PoGoAccount.update(in_use=True, session=newSession).where(PoGoAccount.username == account)
     query.execute()
 
 def reset_account_use():

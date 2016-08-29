@@ -4,6 +4,7 @@
 import sys
 import configargparse
 import os
+import base64
 import json
 import logging
 import shutil
@@ -239,6 +240,10 @@ def get_args():
 def now():
     # The fact that you need this helper...
     return int(time.time())
+
+
+def generate_session():
+    return base64.b64encode(os.urandom(16))
 
 
 def i8ln(word):

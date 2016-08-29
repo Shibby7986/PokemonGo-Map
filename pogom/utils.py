@@ -5,6 +5,7 @@ import sys
 import configargparse
 import uuid
 import os
+import base64
 import json
 from datetime import datetime, timedelta
 import logging
@@ -284,6 +285,10 @@ def insert_mock_data(position):
 def now():
     # The fact that you need this helper...
     return int(time.time())
+
+
+def generate_session():
+    return base64.b64encode(os.urandom(16))
 
 
 def i8ln(word):

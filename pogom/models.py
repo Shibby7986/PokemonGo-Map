@@ -569,6 +569,15 @@ class PoGoAccount(BaseModel):
                 break
 
         return accounts
+    @staticmethod
+    def valid_session(username,session):
+        query = (PoGoAccount
+                .select()
+                .where(PoGoAccount.username == username)
+                .dicts())
+        for account in query:
+            return account['session'] == session
+        
 
 def insert_accounts():
     for account in args.accounts:

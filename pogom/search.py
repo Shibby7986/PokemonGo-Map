@@ -506,14 +506,17 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
 
             # The forever loop for the searches
             while True:
-
+                #checks if the account is used by someone else
+                if not PoGoAccount.valid_session(account['username'],account['session']):
+                    account = PoGoAccount.get_active_unused(1, True)[0]
+                    break
                 # If this account has been messing up too hard, let it rest
                 if status['fail'] >= args.max_failures:
                     status['message'] = 'Worker {} failed more than {} scans; possibly banned account.'.format(account['username'], args.max_failures)
                     log.error(status['message'])
                     deactivate_account(account['username'])
                     account = PoGoAccount.get_active_unused(1, True)[0]
-                    raise Exception('Username Changed')
+                    break
 
                 while pause_bit.is_set():
                     status['message'] = 'Scanning paused'

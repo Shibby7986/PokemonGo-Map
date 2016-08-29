@@ -548,8 +548,8 @@ class PoGoAccount(BaseModel):
     def get_active_unused(count, use):
         query = (PoGoAccount
                  .select()
-                 .where((PoGoAccount.active == True) &
-                        (PoGoAccount.in_use == False))
+                 .where((PoGoAccount.active == 1) &
+                        (PoGoAccount.in_use == 0))
                  .dicts())
 
         accounts = []

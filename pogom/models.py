@@ -17,13 +17,10 @@ from datetime import datetime, timedelta
 from base64 import b64encode
 
 from . import config
-<<<<<<< HEAD
 from .utils import get_pokemon_name, get_pokemon_rarity, get_pokemon_types, get_args, generate_session
 from .transform import transform_from_wgs_to_gcj, get_new_coords, generate_location_steps
-=======
 from .utils import get_pokemon_name, get_pokemon_rarity, get_pokemon_types, get_args
 from .transform import transform_from_wgs_to_gcj, get_new_coords
->>>>>>> refs/remotes/PokemonGoMap/develop
 from .customLog import printPokemon
 
 log = logging.getLogger(__name__)
@@ -517,6 +514,7 @@ class PoGoAccount(BaseModel):
     in_use = BooleanField(default=False)
     session = CharField(index=True, default=generate_session())
     time_deactivated = DateTimeField(default=datetime.utcnow())
+
     @staticmethod
     def get_num_accounts():
         query = (PoGoAccount
@@ -916,7 +914,7 @@ def clean_db_loop(args):
             query = (PoGoAccount
                      .update(active=True)
                      .where((PoGoAccount.time_deactivated < (datetime.utcnow() - timedelta(minutes=120))) &
-                            (PoGoAccount.active == False)))
+                            (PoGoAccount.active == 0)))
             query.execute()
 
             # If desired, clear old pokemon spawns

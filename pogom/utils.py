@@ -193,9 +193,8 @@ def get_args():
         if num_auths > 1 and num_usernames != num_auths:
             errors.append('The number of provided auth ({}) must match the username count ({})'.format(num_auths, num_usernames))
 
-
     if args.only_server:
-        args.num_accounts = 0 # set to 0 accounts needed
+        args.num_accounts = 0  # set to 0 accounts needed
         if args.location is None:
             parser.print_usage()
             print(sys.argv[0] + ": error: arguments -l/--location is required")
@@ -208,7 +207,6 @@ def get_args():
         if (args.step_limit is None):
             errors.append('Missing `step_limit` either as -st/--step-limit or in config')
 
-        
     if len(errors) > 0:
         parser.print_usage()
         print(sys.argv[0] + ": errors: \n - " + "\n - ".join(errors))

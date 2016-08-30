@@ -522,7 +522,7 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                     status['message'] = 'Scann at {:6f},{:6f}, failed, possibly invalid login or inactive account'.format(step_location[0], step_location[1])
                     log.error(status['message'])
                     time.sleep(args.scan_delay)
-                    continue                
+                    continue
 
                 # Checks if pogo api is recieving map objects
                 if len(response_dict['responses']['GET_MAP_OBJECTS']) == 0:

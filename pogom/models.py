@@ -543,6 +543,7 @@ class PoGoAccount(BaseModel):
     active = BooleanField(default=True)
     in_use = BooleanField(default=False)
     session = CharField(index=True, default=generate_session())
+    last_modified = DateTimeField(default=datetime.utcnow)
 
     @staticmethod
     def get_active_unused(count, use):
@@ -592,7 +593,7 @@ def insert_accounts():
 
 def deactivate_account(faulty_account):
     log.info("Deactivating " + faulty_account)
-    query = PoGoAccount.update(active=False, in_use=False).where(PoGoAccount.username == faulty_account)
+    query = PoGoAccount.update(active=False, in_use=False, last_modified=datetime.utcnow).where(PoGoAccount.username == faulty_account)
     query.execute()
 
 
@@ -942,6 +943,13 @@ def clean_db_loop(args):
             query = (Pokestop
                      .update(lure_expiration=None)
                      .where(Pokestop.lure_expiration < datetime.utcnow()))
+            query.execute()
+
+            # Reactivate account after two hour sleep
+            query = (PoGoAccount
+                     .update(active=True, in_use=False)
+                     .where((PoGoAccount.last_modified <
+                            (datetime.utcnow() - timedelta(minutes=120)))))
             query.execute()
 
             # If desired, clear old pokemon spawns

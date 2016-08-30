@@ -583,8 +583,7 @@ def insert_accounts():
         log.info("Checking " + account['username'])
         try:
             query = PoGoAccount.create(username=account['username'], password=account['password'], auth_service=account['auth_service'])
-            query.execute()
-            log.info("added" + account['username'])
+            log.info("Added " + account['username'])
         except:
             log.info(account['username'] + " already exists reseting password and status")
             query = PoGoAccount.update(password=account['password'], auth_service=account['auth_service'], active=True).where(PoGoAccount.username == account['username'])

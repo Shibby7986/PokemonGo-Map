@@ -518,7 +518,7 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
 
                 if len(response_dict['responses']['GET_MAP_OBJECTS']) == 0
                     status['fail'] += 1
-                    status['message'] = 'No map objects found at {:6f},{:6f}, posibly banned account'.format(step_location[0], step_location[1])
+                    status['message'] = 'No map objects found at {:6f},{:6f}, possibly banned account'.format(step_location[0], step_location[1])
                     log.error(status['message'])
                     time.sleep(args.scan_delay)
                     continue

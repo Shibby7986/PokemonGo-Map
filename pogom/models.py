@@ -949,9 +949,10 @@ def clean_db_loop(args):
 
             # Reactivate account after two hour sleep
             query = (PoGoAccount
-                     .update(active=True, in_use=False)
+                     .update(active=True)
                      .where((PoGoAccount.last_modified <
-                            (datetime.utcnow() - timedelta(minutes=120)))))
+                            (datetime.utcnow() - timedelta(minutes=120))) &
+                            PoGoAccount.active == False))
             query.execute()
 
             # If desired, clear old pokemon spawns

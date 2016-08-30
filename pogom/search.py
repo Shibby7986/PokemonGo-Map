@@ -33,7 +33,7 @@ from queue import Queue, Empty
 from pgoapi import PGoApi
 from pgoapi.utilities import f2i
 from pgoapi import utilities as util
-from pgoapi.exceptions import AuthException
+from pgoapi.exceptions import AuthException, NotLoggedInException
 
 from .models import parse_map, Pokemon, hex_bounds, GymDetails, parse_gyms, PoGoAccount, deactivate_account
 from .transform import generate_location_steps
@@ -516,7 +516,16 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                     time.sleep(args.scan_delay)
                     continue
 
-                if len(response_dict['responses']['GET_MAP_OBJECTS']) == 0
+                # Checks if map_request had returned a not loged in exception
+                if isinstance(response_dict, NotLoggedInException):
+                    status['fail'] += 1
+                    status['message'] = 'Scann at {:6f},{:6f}, failed, possibly invalid login or inactive account'.format(step_location[0], step_location[1])
+                    log.error(status['message'])
+                    time.sleep(args.scan_delay)
+                    continue                
+
+                # Checks if pogo api is recieving map objects
+                if len(response_dict['responses']['GET_MAP_OBJECTS']) == 0:
                     status['fail'] += 1
                     status['message'] = 'No map objects found at {:6f},{:6f}, possibly banned account'.format(step_location[0], step_location[1])
                     log.error(status['message'])

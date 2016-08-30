@@ -508,6 +508,7 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
             while True:
                 # Checks if the account is used by someone else
                 if not PoGoAccount.valid_session(account['username'], account['session']):
+                    log.info(account['username'] + " has been used in a new thread.")
                     account = PoGoAccount.get_active_unused(1, True)[0]
                     break
 

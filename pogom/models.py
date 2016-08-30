@@ -547,12 +547,9 @@ class PoGoAccount(BaseModel):
     @staticmethod
     def get_num_accounts():
         query = (PoGoAccount
-                 .select(fn.COUNT(PoGoAccount.username))
-                 .get())
-        print query
-
+                 .select()
+                 .count())
         return query
-        
 
     @staticmethod
     def get_active_unused(count, use):
@@ -566,7 +563,7 @@ class PoGoAccount(BaseModel):
                      .dicts())
 
             if len(query) == 0:
-                if get_num_accounts() == 0:
+                if PoGoAccount.get_num_accounts() == 0:
                     log.info("there are no accounts, please add accounts using -u/--username and -p/--password or in config")
                 else:
                     log.info("no available accounts, please add more")

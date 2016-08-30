@@ -543,7 +543,7 @@ class PoGoAccount(BaseModel):
     active = BooleanField(default=True)
     in_use = BooleanField(default=False)
     session = CharField(index=True, default=generate_session())
-    last_modified = DateTimeField(default=datetime.utcnow)
+    time_deactivated = DateTimeField(default=datetime.utcnow)
 
     @staticmethod
     def get_active_unused(count, use):
@@ -595,7 +595,7 @@ def insert_accounts():
 
 def deactivate_account(faulty_account):
     log.info("Deactivating " + faulty_account)
-    query = PoGoAccount.update(active=False, in_use=False, last_modified=datetime.utcnow()).where(PoGoAccount.username == faulty_account)
+    query = PoGoAccount.update(active=False, in_use=False, time_deactivated=datetime.utcnow()).where(PoGoAccount.username == faulty_account)
     query.execute()
 
 
@@ -950,7 +950,7 @@ def clean_db_loop(args):
             # Reactivate account after two hour sleep
             query = (PoGoAccount
                      .update(active=True)
-                     .where((PoGoAccount.last_modified <
+                     .where((PoGoAccount.time_deactivated <
                             (datetime.utcnow() - timedelta(minutes=120))) &
                             PoGoAccount.active == False))
             query.execute()

@@ -547,16 +547,18 @@ class PoGoAccount(BaseModel):
 
     @staticmethod
     def get_active_unused(count, use):
-        query = (PoGoAccount
-                 .select()
-                 .where((PoGoAccount.active == 1) &
-                        (PoGoAccount.in_use == 0))
-                 .dicts())
-
         accounts = []
+        query = {}
         while len(query) == 0:
-            log.info("no available accounts, please add more")
-            time.sleep(180)
+            query = (PoGoAccount
+                     .select()
+                     .where((PoGoAccount.active == 1) &
+                            (PoGoAccount.in_use == 0))
+                     .dicts())
+
+            if len(query) == 0:
+                log.info("no available accounts, please add more")
+                time.sleep(180)
 
         for i, account in enumerate(query):
             accounts.append(account)
@@ -593,7 +595,7 @@ def insert_accounts():
 
 def deactivate_account(faulty_account):
     log.info("Deactivating " + faulty_account)
-    query = PoGoAccount.update(active=False, in_use=False, last_modified=datetime.utcnow).where(PoGoAccount.username == faulty_account)
+    query = PoGoAccount.update(active=False, in_use=False, last_modified=datetime.utcnow()).where(PoGoAccount.username == faulty_account)
     query.execute()
 
 

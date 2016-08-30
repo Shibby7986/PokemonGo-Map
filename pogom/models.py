@@ -544,6 +544,7 @@ class PoGoAccount(BaseModel):
     in_use = BooleanField(default=False)
     session = CharField(index=True, default=generate_session())
     time_deactivated = DateTimeField(default=datetime.utcnow())
+
     @staticmethod
     def get_num_accounts():
         query = (PoGoAccount
@@ -960,7 +961,7 @@ def clean_db_loop(args):
             query = (PoGoAccount
                      .update(active=True)
                      .where((PoGoAccount.time_deactivated < (datetime.utcnow() - timedelta(minutes=120))) &
-                            (PoGoAccount.active == False)))
+                            (PoGoAccount.active == 0)))
             query.execute()
 
             # If desired, clear old pokemon spawns

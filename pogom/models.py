@@ -1004,7 +1004,7 @@ def clean_db_loop(args):
             query = (PoGoAccount
                      .update(active=True)
                      .where((PoGoAccount.time_deactivated < (datetime.utcnow() - timedelta(minutes=120))) &
-                            (PoGoAccount.active == False)))
+                            (PoGoAccount.active == 0)))
             query.execute()
 
             # If desired, clear old pokemon spawns

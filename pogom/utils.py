@@ -170,63 +170,63 @@ def get_args():
 
     args = parser.parse_args()
 
+    errors = []
+
+    num_auths = 1
+    num_usernames = 0
+    num_passwords = 0
+
+    if args.password is not None:
+        num_passwords = len(args.password)
+
+    if args.username is not None:
+        num_usernames = len(args.username)
+
+    if args.auth_service is None:
+        args.auth_service = ['ptc']
+    else:
+        num_auths = len(args.auth_service)
+
+    if num_usernames > 1:
+        if num_passwords > 1 and num_usernames != num_passwords:
+            errors.append('The number of provided passwords ({}) must match the username count ({})'.format(num_passwords, num_usernames))
+        if num_auths > 1 and num_usernames != num_auths:
+            errors.append('The number of provided auth ({}) must match the username count ({})'.format(num_auths, num_usernames))
+
+
     if args.only_server:
+        args.num_accounts = 0 # set to 0 accounts needed
         if args.location is None:
             parser.print_usage()
             print(sys.argv[0] + ": error: arguments -l/--location is required")
             sys.exit(1)
     else:
-        errors = []
-
-        num_auths = 1
-        num_usernames = 0
-        num_passwords = 0
-
-        if (args.username is None):
-            log.info('Missing `username` either as -u/--username or in config')
-        else:
-            num_usernames = len(args.username)
 
         if (args.location is None):
             errors.append('Missing `location` either as -l/--location or in config')
 
-        if (args.password is None):
-            log.info('Missing `password` either as -p/--password or in config')
-        else:
-            num_passwords = len(args.password)
-
         if (args.step_limit is None):
             errors.append('Missing `step_limit` either as -st/--step-limit or in config')
 
-        if args.auth_service is None:
-            args.auth_service = ['ptc']
-        else:
-            num_auths = len(args.auth_service)
+        
+    if len(errors) > 0:
+        parser.print_usage()
+        print(sys.argv[0] + ": errors: \n - " + "\n - ".join(errors))
+        sys.exit(1)
 
-        if num_usernames > 1:
-            if num_passwords > 1 and num_usernames != num_passwords:
-                errors.append('The number of provided passwords ({}) must match the username count ({})'.format(num_passwords, num_usernames))
-            if num_auths > 1 and num_usernames != num_auths:
-                errors.append('The number of provided auth ({}) must match the username count ({})'.format(num_auths, num_usernames))
+    # Fill the pass/auth if set to a single value
+    if num_passwords == 1:
+        args.password = [args.password[0]] * num_usernames
+    if num_auths == 1:
+        args.auth_service = [args.auth_service[0]] * num_usernames
 
-        if len(errors) > 0:
-            parser.print_usage()
-            print(sys.argv[0] + ": errors: \n - " + "\n - ".join(errors))
-            sys.exit(1)
+    # Make our accounts list
+    args.accounts = []
 
-        # Fill the pass/auth if set to a single value
-        if num_passwords == 1:
-            args.password = [args.password[0]] * num_usernames
-        if num_auths == 1:
-            args.auth_service = [args.auth_service[0]] * num_usernames
-
-        # Make our accounts list
-        args.accounts = []
-
-        # Make the accounts list
-        if args.username is not None:
-            for i, username in enumerate(args.username):
-                args.accounts.append({'username': username, 'password': args.password[i], 'auth_service': args.auth_service[i]})
+    # Make the accounts list
+    if args.username is not None:
+        for i, username in enumerate(args.username):
+            args.accounts.append({'username': username, 'password': args.password[i], 'auth_service': args.auth_service[i]})
 
     return args
 

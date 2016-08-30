@@ -490,6 +490,15 @@ class PoGoAccount(BaseModel):
     in_use = BooleanField(default=False)
     session = CharField(index=True, default=generate_session())
     time_deactivated = DateTimeField(default=datetime.utcnow())
+    @staticmethod
+    def get_num_accounts():
+        query = (PoGoAccount
+                 .select(fn.COUNT(PoGoAccount.username))
+                 .get())
+        print query
+
+        return query
+        
 
     @staticmethod
     def get_active_unused(count, use):
@@ -503,7 +512,10 @@ class PoGoAccount(BaseModel):
                      .dicts())
 
             if len(query) == 0:
-                log.info("no available accounts, please add more")
+                if get_num_accounts() == 0:
+                    log.info("there are no accounts, please add accounts using -u/--username and -p/--password or in config")
+                else:
+                    log.info("no available accounts, please add more")
                 time.sleep(180)
 
         for i, account in enumerate(query):

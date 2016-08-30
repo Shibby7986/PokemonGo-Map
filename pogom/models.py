@@ -489,7 +489,7 @@ class PoGoAccount(BaseModel):
     active = BooleanField(default=True)
     in_use = BooleanField(default=False)
     session = CharField(index=True, default=generate_session())
-    time_deactivated = DateTimeField(default=datetime.utcnow)
+    time_deactivated = DateTimeField(default=datetime.utcnow())
 
     @staticmethod
     def get_active_unused(count, use):
@@ -879,9 +879,8 @@ def clean_db_loop(args):
             # Reactivate account after two hour sleep
             query = (PoGoAccount
                      .update(active=True)
-                     .where((PoGoAccount.time_deactivated <
-                            (datetime.utcnow() - timedelta(minutes=120))) &
-                            PoGoAccount.active == False))
+                     .where((PoGoAccount.time_deactivated < (datetime.utcnow() - timedelta(minutes=120))) &
+                            (PoGoAccount.active == False)))
             query.execute()
 
             # If desired, clear old pokemon spawns

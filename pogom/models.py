@@ -957,6 +957,12 @@ def clean_db_loop(args):
                      .where(Pokestop.lure_expiration < datetime.utcnow()))
             query.execute()
 
+            # Remove active modifier from expired lured pokestops
+            query = (Pokestop
+                     .update(lure_expiration=None)
+                     .where(Pokestop.lure_expiration < datetime.utcnow()))
+            query.execute()
+
             # Reactivate account after two hour sleep
             query = (PoGoAccount
                      .update(active=True)

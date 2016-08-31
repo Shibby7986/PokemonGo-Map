@@ -238,6 +238,20 @@ def generate_session():
     return base64.b64encode(os.urandom(16))
 
 
+def get_speed_sleep(location1, location2, start_time)
+    speed_limit = args.speed_limit * 1000.0 / 3600.0  # convert to mps to avoid divide by zero errors
+    if speed_limit > 0:
+        distance = geopy.distance.distance(location1, location2).meters
+        time_elapsed = int(round(time.time() * 1000.0)) - start_time
+        speed = distance / (time_elapsed / 1000.0)
+     if speed > speed_limit:
+        speed_sleep = int(math.ceil(((1000.0 * distance / speed_limit) - time_elapsed) / 1000.0))
+        if speed_sleep > args.max_speed_limit_sleep and args.max_speed_limit_sleep > 0:
+            return args.max_speed_limit_sleep
+        return speed_sleep
+    return 0
+
+
 def i8ln(word):
     if config['LOCALE'] == "en":
         return word

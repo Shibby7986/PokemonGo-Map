@@ -35,7 +35,7 @@ from pgoapi.utilities import f2i
 from pgoapi import utilities as util
 from pgoapi.exceptions import AuthException, NotLoggedInException
 
-from .models import parse_map, Pokemon, hex_bounds, GymDetails, parse_gyms, PoGoAccount, deactivate_account
+from .models import parse_map, Pokemon, hex_bounds, GymDetails, parse_gyms, PoGoAccount, deactivate_account, update_use_account
 from .transform import generate_location_steps
 from .fakePogoApi import FakePogoApi
 from .utils import now
@@ -468,6 +468,9 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                 status['message'] = 'Waiting for item from queue'
                 step, step_location, appears, leaves = search_items_queue.get()
 
+                # too fast?
+                time.sleep(PoGoAccount.get_speed_sleep(step_location, account['username'], args))
+
                 # too soon?
                 if appears and now() < appears + 10:  # adding a 10 second grace period
                     first_loop = True
@@ -507,6 +510,9 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
 
                 # Make the actual request (finally!)
                 response_dict = map_request(api, step_location, args.jitter)
+
+                # update last scan location and time
+                update_use_account(account['username'], step_location[0], step_location[1])
 
                 # G'damnit, nothing back. Mark it up, sleep, carry on
                 if not response_dict:

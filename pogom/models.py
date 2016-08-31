@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from base64 import b64encode
 
 from . import config
-from .utils import get_pokemon_name, get_pokemon_rarity, get_pokemon_types, get_args, generate_session
+from .utils import get_pokemon_name, get_pokemon_rarity, get_pokemon_types, get_args, generate_session, calculate_speed_sleep
 from .transform import transform_from_wgs_to_gcj, get_new_coords
 from .customLog import printPokemon
 
@@ -505,6 +505,7 @@ class GymDetails(BaseModel):
 
 
 class PoGoAccount(BaseModel):
+    location = [x.strip() for x in args.location.split(',')]
     username = CharField(primary_key=True)
     password = CharField()
     auth_service = CharField()
@@ -512,6 +513,29 @@ class PoGoAccount(BaseModel):
     in_use = BooleanField(default=False)
     session = CharField(index=True, default=generate_session())
     time_deactivated = DateTimeField(default=datetime.utcnow())
+    last_scan_time = DateTimeField(default=datetime.utcnow())
+    last_latitude = CharField(default=location[0])
+    last_longitude = CharField(default=location[1])
+
+    @staticmethod
+    def get_speed_sleep(location, username, args):
+        query = (PoGoAccount
+                 .select(PoGoAccount.last_scan_time,PoGoAccount.last_latitude,PoGoAccount.last_longitude)
+                 .where(PoGoAccount.username == username)
+                 .get()
+                 )
+       
+        distance, speed, sleep = calculate_speed_sleep(location,(query.last_latitude,query.last_longitude),query.last_scan_time, args)
+        unit = "m"
+        if distance >= 1000:
+            unit = "km"
+            distance = distance / 1000            
+        speed = speed * 3600.0 / 1000.0 # convert speed to km/h       
+        message = 'Traveling {:.1f}{} at {:.2f}KM/h'.format(distance, unit, int(round(speed)))
+        if sleep > 0:
+            message = "{:.2f}KM/h is too fast, we are waiting {} seconds to be under speed limit of {}KM/h".format(speed,sleep,args.speed_limit)
+        log.info(message)
+        return sleep
 
     @staticmethod
     def get_num_accounts():
@@ -566,9 +590,16 @@ def insert_accounts():
             query = PoGoAccount.create(username=account['username'], password=account['password'], auth_service=account['auth_service'])
             log.info("Added " + account['username'])
         except:
-            log.info(account['username'] + " already exists reseting password and status")
-            query = PoGoAccount.update(password=account['password'], auth_service=account['auth_service'], active=True).where(PoGoAccount.username == account['username'])
-            query.execute()
+            done = False
+            while not done:
+                try:
+                    log.info(account['username'] + " already exists reseting password and status")
+                    query = PoGoAccount.update(password=account['password'], auth_service=account['auth_service'], active=True).where(PoGoAccount.username == account['username'])
+                    query.execute()
+                    done = True
+                except:
+                    log.info("Issue updating accounts, trying again")
+
 
 
 def deactivate_account(faulty_account):
@@ -589,6 +620,13 @@ def use_account(account, newSession):
     query = PoGoAccount.update(in_use=True, session=newSession).where(PoGoAccount.username == account)
     query.execute()
 
+
+def update_use_account(account, latitude, longitude):
+    query = (PoGoAccount
+             .update(in_use=True, last_scan_time=datetime.utcnow(),last_latitude=latitude, last_longitude=longitude)
+             .where(PoGoAccount.username == account)
+             .execute()
+             )
 
 def reset_account_use():
     query = PoGoAccount.update(in_use=False)

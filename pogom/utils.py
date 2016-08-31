@@ -11,6 +11,9 @@ import shutil
 import platform
 import pprint
 import time
+import geopy
+import datetime
+import math
 
 from . import config
 
@@ -162,6 +165,12 @@ def get_args():
     parser.add_argument('-ps', '--print-status', action='store_true',
                         help='Show a status screen instead of log messages. Can switch between status and logs by pressing enter.', default=False)
     parser.add_argument('-el', '--encrypt-lib', help='Path to encrypt lib to be used instead of the shipped ones')
+    parser.add_argument('-sl', '--speed-limit',
+                        help='If next scan would cause the account to move above specified speed in kmph in a straight line, sleep until such time that it could reasonably move that distance',
+                        type=float, default=60)
+    parser.add_argument('-msls', '--max-speed-limit-sleep',
+                        help='Maximum time in seconds to sleep when trying to stay under the speed limit',
+                        type=float, default=0)
     verbosity = parser.add_mutually_exclusive_group()
     verbosity.add_argument('-v', '--verbose', help='Show debug messages from PomemonGo-Map and pgoapi. Optionally specify file to log to.', nargs='?', const='nofile', default=False, metavar='filename.log')
     verbosity.add_argument('-vv', '--very-verbose', help='Like verbose, but show debug messages from all modules as well.  Optionally specify file to log to.', nargs='?', const='nofile', default=False, metavar='filename.log')
@@ -238,18 +247,18 @@ def generate_session():
     return base64.b64encode(os.urandom(16))
 
 
-def get_speed_sleep(location1, location2, start_time)
-    speed_limit = args.speed_limit * 1000.0 / 3600.0  # convert to mps to avoid divide by zero errors
+def calculate_speed_sleep(location1, location2, start_time, args):
+    speed_limit = args.speed_limit * 1000 / 3600.0  # convert to meters per second to avoid divide by zero errors
     if speed_limit > 0:
         distance = geopy.distance.distance(location1, location2).meters
-        time_elapsed = int(round(time.time() * 1000.0)) - start_time
-        speed = distance / (time_elapsed / 1000.0)
-     if speed > speed_limit:
-        speed_sleep = int(math.ceil(((1000.0 * distance / speed_limit) - time_elapsed) / 1000.0))
-        if speed_sleep > args.max_speed_limit_sleep and args.max_speed_limit_sleep > 0:
-            return args.max_speed_limit_sleep
-        return speed_sleep
-    return 0
+        time_elapsed = int(round(time.time())) - int(round((start_time - datetime.datetime.utcfromtimestamp(0)).total_seconds()))
+        speed = distance / time_elapsed
+        if speed > speed_limit:
+            speed_sleep = int(math.ceil(((1000.0 * distance / speed_limit) - time_elapsed) / 1000.0))
+            if speed_sleep > args.max_speed_limit_sleep and args.max_speed_limit_sleep > 0:
+                return distance, speed, args.max_speed_limit_sleep
+            return distance, speed, speed_sleep
+    return distance, speed, 0
 
 
 def i8ln(word):

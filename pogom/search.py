@@ -447,6 +447,8 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
             # The forever loop for the searches
             while True:
                 # Checks if the account is used by someone else
+                if isinstance(account,PoGoAccount):
+                    print("gotpogo")
                 if not PoGoAccount.valid_session(account['username'], account['session']):
                     log.info(account['username'] + " has been used in a new thread.")
                     account = PoGoAccount.get_active_unused(1, True)[0]
@@ -469,7 +471,8 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                 step, step_location, appears, leaves = search_items_queue.get()
 
                 # too fast?
-                time.sleep(PoGoAccount.get_speed_sleep(step_location, account['username'], args))
+                sleep_time, account = PoGoAccount.get_speed_sleep(step_location, account['username'], args)
+                time.sleep(sleep_time)
 
                 # too soon?
                 if appears and now() < appears + 10:  # adding a 10 second grace period

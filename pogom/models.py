@@ -520,22 +520,45 @@ class PoGoAccount(BaseModel):
     @staticmethod
     def get_speed_sleep(location, username, args):
         query = (PoGoAccount
-                 .select(PoGoAccount.last_scan_time,PoGoAccount.last_latitude,PoGoAccount.last_longitude)
+                 .select()
                  .where(PoGoAccount.username == username)
-                 .get()
+                 .dicts()
                  )
-       
-        distance, speed, sleep = calculate_speed_sleep(location,(query.last_latitude,query.last_longitude),query.last_scan_time, args)
+
+        for i, account in enumerate(query):
+           distance, speed, sleep = calculate_speed_sleep(location,(account['last_latitude'],account['last_longitude']),account['last_scan_time'], args)
         unit = "m"
         if distance >= 1000:
             unit = "km"
             distance = distance / 1000            
         speed = speed * 3600.0 / 1000.0 # convert speed to km/h       
-        message = 'Traveling {:.1f}{} at {:.2f}KM/h'.format(distance, unit, int(round(speed)))
+        message = 'Traveling {:.1f}{} at {:.1f}KM/h'.format(distance, unit, int(round(speed)))
+        new_account = {}
         if sleep > 0:
-            message = "{:.2f}KM/h is too fast, we are waiting {} seconds to be under speed limit of {}KM/h".format(speed,sleep,args.speed_limit)
+            message = "{:.1f}KM/h is too fast, we are waiting {} seconds to be under speed limit of {}KM/h".format(speed,sleep,args.speed_limit)
+            new_accounts = PoGoAccount.get_active_unused(float("inf"), False)
+            old_sleep = sleep
+            for account in new_accounts:
+                new_distance, new_speed, new_sleep = calculate_speed_sleep(location,(account['last_latitude'], account['last_longitude']), account['last_scan_time'], args)
+                if sleep > new_sleep:
+                    new_account = account
+                    distance = new_distance
+                    sleep = new_sleep
+                if sleep == new_sleep:
+                    if distance > new_distance:
+                        new_account = account
+                        distance = new_distance
+                    
+        if new_account:
+            message = "{} will take {} seconds to arive at the next scan, we found a closer unused account than can scan now".format(username,old_sleep)
+            if sleep > 0:
+                message = "{} will take {} seconds to arive at the next scan, we found a closer unused account it will take {} seconds".format(username,old_sleep,sleep)
+            log.info(message)
+            new_account.update({'session': generate_session()})
+            use_account(new_account['username'], new_account['session'])
+            return sleep, new_account
         log.info(message)
-        return sleep
+        return sleep, account
 
     @staticmethod
     def get_num_accounts():
@@ -566,11 +589,9 @@ class PoGoAccount(BaseModel):
             accounts.append(account)
             if use:
                 accounts[i].update({'session': generate_session()})
-                log.info("seting " + account['username'] + " to in use.")
                 use_account(account['username'], account['session'])
             if i == count - 1:
                 break
-
         return accounts
 
     @staticmethod
@@ -612,13 +633,20 @@ def remove_accounts():
     if args.remove_user is not None:
         for account in args.remove_user:
             log.info("Removing " + account + " from the db.")
-            query = (PoGoAccount.delete().where(PoGoAccount.username == account))
-            query.execute()
+            query = (PoGoAccount
+                     .delete()
+                     .where(PoGoAccount.username == account)
+                     .execute()
+                     )
 
 
-def use_account(account, newSession):
-    query = PoGoAccount.update(in_use=True, session=newSession).where(PoGoAccount.username == account)
-    query.execute()
+def use_account(username, new_session):
+    log.info("setting " + username + " to in use.")
+    query = (PoGoAccount
+             .update(in_use=True, session=new_session)
+             .where(PoGoAccount.username == username)
+             .execute()
+             )
 
 
 def update_use_account(account, latitude, longitude):
@@ -628,9 +656,19 @@ def update_use_account(account, latitude, longitude):
              .execute()
              )
 
-def reset_account_use():
-    query = PoGoAccount.update(in_use=False)
-    query.execute()
+
+def reset_account_use(username):
+    if username == '*':
+        query = (PoGoAccount
+                 .update(in_use=False)
+                 .execute()
+                 )
+    else:
+        query = (PoGoAccount
+                 .update(in_use=False)
+                 .where(PoGoAccount.username == username)
+                 .execute()
+                 )
 
 
 def hex_bounds(center, steps):

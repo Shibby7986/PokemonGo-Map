@@ -171,7 +171,7 @@ def main():
     # Reseting accounts to not be inuse when a new webserver is started
     if args.clear_usage:
         log.info("seting all accounts to not in use")
-        reset_account_use()
+        reset_account_use('*')
 
     # Display the number of active acounts and display it to the user
     num_active = str(len(PoGoAccount.get_active_unused(float("inf"), False)))

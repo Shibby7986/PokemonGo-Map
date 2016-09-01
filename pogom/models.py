@@ -550,6 +550,7 @@ class PoGoAccount(BaseModel):
                         distance = new_distance
                     
         if new_account:
+            reset_account_use(account['username'])
             log.info("{} will take {} seconds to arive at the next scan.".format(username,old_sleep))
             if sleep == 0:
                 log.info("We found an in range unused account that can scan now.")

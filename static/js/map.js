@@ -1124,7 +1124,7 @@ function gymLabel (teamName, teamId, gymPoints, latitude, longitude, lastScanned
   for (var i = 0; i < members.length; i++) {
     memberStr += `
       <span class="gym-member" title="${members[i].pokemon_name} | ${members[i].trainer_name} (Lvl ${members[i].trainer_level})">
-        <i class="pokemon-sprite n${members[i].pokemon_id}"></i>
+		<img height='30px' style='padding: 1px;' src='static/icons/${members[i].pokemon_id}.png'>
         <span class="cp team-${teamId}">${members[i].pokemon_cp}</span>
       </span>`
   }

@@ -532,10 +532,10 @@ class PoGoAccount(BaseModel):
             unit = "km"
             distance = distance / 1000            
         speed = speed * 3600.0 / 1000.0 # convert speed to km/h       
-        message = 'Traveling {:.1f}{} at {:.1f}KM/h'.format(distance, unit, int(round(speed)))
+        message = 'Traveling {:.1f}{} at {:.1f}km/h'.format(distance, unit, int(round(speed)))
         new_account = {}
         if sleep > 0:
-            message = "{:.1f}KM/h is too fast, we are waiting {} seconds to stay under {}KM/h".format(speed,sleep,args.speed_limit)
+            message = "{:.1f}km/h is too fast, we are waiting {} seconds to stay under {}km/h".format(speed,sleep,args.speed_limit)
             new_accounts = PoGoAccount.get_active_unused(float("inf"), False)
             old_sleep = sleep
             for account in new_accounts:
@@ -596,7 +596,7 @@ class PoGoAccount(BaseModel):
         return accounts
 
     @staticmethod
-    def valid_session(username, session):
+    def valid_session(username, current_session):
         query = (PoGoAccount
                  .select()
                  .where(PoGoAccount.username == username)
@@ -604,10 +604,10 @@ class PoGoAccount(BaseModel):
         for account in query:
             if not account['in_use']:  # If the account is not set to in_use recreate the session
                 query = (PoGoAccount
-                         .update(in_use=True, session=newSession)
+                         .update(in_use=True, session=current_session)
                          .where(PoGoAccount.username == account)
                          .execute())
-            return account['session'] == session
+            return account['session'] == current_session
 
 
 def insert_accounts():

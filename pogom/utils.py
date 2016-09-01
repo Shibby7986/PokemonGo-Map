@@ -248,17 +248,18 @@ def generate_session():
 
 
 def calculate_speed_sleep(location1, location2, start_time, args):
-    speed_limit = args.speed_limit * 1000 / 3600.0  # convert to meters per second to avoid divide by zero errors
-    if speed_limit > 0:
-        distance = geopy.distance.distance(location1, location2).meters
-        time_elapsed = int(round(time.time())) - int(round((start_time - datetime.datetime.utcfromtimestamp(0)).total_seconds()))
+    distance = geopy.distance.distance(location1, location2).meters
+    time_elapsed = int(round(time.time())) - int(round((start_time - datetime.datetime.utcfromtimestamp(0)).total_seconds()))
+    if args.speed_limit > 0 and distance > 0 and time_elapsed > 0:
         speed = distance / time_elapsed
+        speed_limit = args.speed_limit * 1000 / 3600.0 
         if speed > speed_limit:
             speed_sleep = int(math.ceil(((1000.0 * distance / speed_limit) - time_elapsed) / 1000.0))
             if speed_sleep > args.max_speed_limit_sleep and args.max_speed_limit_sleep > 0:
+                log.info('Sleep exceeded, using maximum sleep')
                 return distance, speed, args.max_speed_limit_sleep
             return distance, speed, speed_sleep
-    return distance, speed, 0
+    return distance, 0, 0
 
 
 def i8ln(word):

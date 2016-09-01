@@ -552,7 +552,7 @@ class PoGoAccount(BaseModel):
         if new_account:
             log.info("{} will take {} seconds to arive at the next scan.".format(username,old_sleep))
             if sleep == 0:
-                log.info("We found a closer unused account than can scan now.")
+                log.info("We found an in range unused account that can scan now.")
             else:
                 log.info = "We found {} is closer, it will take {} seconds to arive.".format(new_account['username'],sleep)
             new_account.update({'session': generate_session()})

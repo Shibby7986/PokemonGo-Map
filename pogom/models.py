@@ -556,11 +556,6 @@ class PoGoAccount(BaseModel):
                  .where(PoGoAccount.username == username)
                  .dicts())
         for account in query:
-            if not account['in_use']  # If the account is not set to in_use recreate the session
-                query = (PoGoAccount
-                         .update(in_use=True, session=newSession)
-                         .where(PoGoAccount.username == account)
-                         .execute())
             return account['session'] == session
 
 

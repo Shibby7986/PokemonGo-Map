@@ -259,6 +259,7 @@ def calculate_speed_sleep(location1, location2, start_time, args):
                 log.info('Sleep exceeded, using maximum sleep')
                 return distance, speed, args.max_speed_limit_sleep
             return distance, speed, speed_sleep
+        return distance, speed, 0
     return distance, 0, 0
 
 

@@ -582,18 +582,19 @@ class PoGoAccount(BaseModel):
         return accounts
 
     @staticmethod
-    def valid_session(username, session):
+    def valid_session(username, current_session):
         query = (PoGoAccount
                  .select()
                  .where(PoGoAccount.username == username)
                  .dicts())
         for account in query:
             if not account['in_use']:  # If the account is not set to in_use recreate the session
+                log.info('usage was reset refreshing session')
                 query = (PoGoAccount
-                         .update(in_use=True, session=newSession)
-                         .where(PoGoAccount.username == account)
+                         .update(in_use=True, session=current_session)
+                         .where(PoGoAccount.username == username)
                          .execute())
-            return account['session'] == session
+            return account['session'] == current_session
 
 
 def insert_accounts():

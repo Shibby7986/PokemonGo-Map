@@ -450,7 +450,7 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                 if isinstance(account,PoGoAccount):
                     print("gotpogo")
                 if not PoGoAccount.valid_session(account['username'], account['session']):
-                    log.info(account['username'] + " has been used in a new thread.")
+                    log.info(account['username'] + "'s session has expired, getting a new account.")
                     account = PoGoAccount.get_active_unused(1, True)[0]
                     break
 

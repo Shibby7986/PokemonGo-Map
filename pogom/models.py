@@ -535,7 +535,7 @@ class PoGoAccount(BaseModel):
         message = 'Traveling {:.1f}{} at {:.1f}KM/h'.format(distance, unit, int(round(speed)))
         new_account = {}
         if sleep > 0:
-            message = "{:.1f}KM/h is too fast, we are waiting {} seconds to be under speed limit of {}KM/h".format(speed,sleep,args.speed_limit)
+            message = "{:.1f}KM/h is too fast, we are waiting {} seconds to stay under {}KM/h".format(speed,sleep,args.speed_limit)
             new_accounts = PoGoAccount.get_active_unused(float("inf"), False)
             old_sleep = sleep
             for account in new_accounts:
@@ -550,10 +550,11 @@ class PoGoAccount(BaseModel):
                         distance = new_distance
                     
         if new_account:
-            message = "{} will take {} seconds to arive at the next scan, we found a closer unused account than can scan now".format(username,old_sleep)
-            if sleep > 0:
-                message = "{} will take {} seconds to arive at the next scan, we found a closer unused account it will take {} seconds".format(username,old_sleep,sleep)
-            log.info(message)
+            log.info("{} will take {} seconds to arive at the next scan.".format(username,old_sleep))
+            if sleep == 0:
+                log.info("We found a closer unused account than can scan now.")
+            else:
+                log.info = "We found {} is closer, it will take {} seconds to arive.".format(new_account['username'],sleep)
             new_account.update({'session': generate_session()})
             use_account(new_account['username'], new_account['session'])
             return sleep, new_account
@@ -660,12 +661,12 @@ def update_use_account(account, latitude, longitude):
 def reset_account_use(username):
     if username == '*':
         query = (PoGoAccount
-                 .update(in_use=False)
+                 .update(in_use=False, session=generate_session())
                  .execute()
                  )
     else:
         query = (PoGoAccount
-                 .update(in_use=False)
+                 .update(in_use=False, session=generate_session())
                  .where(PoGoAccount.username == username)
                  .execute()
                  )

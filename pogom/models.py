@@ -532,7 +532,7 @@ class PoGoAccount(BaseModel):
             unit = "km"
             distance = distance / 1000            
         speed = speed * 3600.0 / 1000.0 # convert speed to km/h       
-        message = 'Traveling {:.1f}{} at {:.1f}km/h'.format(distance, unit, int(round(speed)))
+        message = 'Traveled {:.1f}{} at {:.1f}km/h'.format(distance, unit, int(round(speed)))
         new_account = {}
         if sleep > 0:
             message = "{:.1f}km/h is too fast, we are waiting {} seconds to stay under {}km/h".format(speed,sleep,args.speed_limit)

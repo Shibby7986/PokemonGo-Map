@@ -525,8 +525,8 @@ class PoGoAccount(BaseModel):
                  .dicts()
                  )
 
-        for i, account in enumerate(query):
-           distance, speed, sleep = calculate_speed_sleep(location,(account['last_latitude'],account['last_longitude']),account['last_scan_time'], args)
+        for i, current_account in enumerate(query):
+            distance, speed, sleep = calculate_speed_sleep(location,(current_account['last_latitude'],current_account['last_longitude']),current_account['last_scan_time'], args)
         unit = "m"
         if distance >= 1000:
             unit = "km"
@@ -538,19 +538,19 @@ class PoGoAccount(BaseModel):
             message = "{:.1f}km/h is too fast, we are waiting {} seconds to stay under {}km/h".format(speed,sleep,args.speed_limit)
             new_accounts = PoGoAccount.get_active_unused(float("inf"), False)
             old_sleep = sleep
-            for account in new_accounts:
-                new_distance, new_speed, new_sleep = calculate_speed_sleep(location,(account['last_latitude'], account['last_longitude']), account['last_scan_time'], args)
+            for test_account in new_accounts:
+                new_distance, new_speed, new_sleep = calculate_speed_sleep(location,(test_account['last_latitude'], test_account['last_longitude']), test_account['last_scan_time'], args)
                 if sleep > new_sleep:
-                    new_account = account
+                    new_account = test_account
                     distance = new_distance
                     sleep = new_sleep
                 if sleep == new_sleep:
                     if distance > new_distance:
-                        new_account = account
+                        new_account = test_account
                         distance = new_distance
                     
         if new_account:
-            reset_account_use(account['username'])
+            reset_account_use(current_account['username'])
             log.info("{} will take {} seconds to arive at the next scan.".format(username,old_sleep))
             if sleep == 0:
                 log.info("We found an in range unused account that can scan now.")
@@ -560,7 +560,7 @@ class PoGoAccount(BaseModel):
             use_account(new_account['username'], new_account['session'])
             return sleep, new_account
         log.info(message)
-        return sleep, account
+        return sleep, current_account
 
     @staticmethod
     def get_num_accounts():
@@ -672,6 +672,7 @@ def reset_account_use(username):
                  .execute()
                  )
     else:
+        log.info('setting {} back to available'.format(username))
         query = (PoGoAccount
                  .update(in_use=False, session=generate_session())
                  .where(PoGoAccount.username == username)

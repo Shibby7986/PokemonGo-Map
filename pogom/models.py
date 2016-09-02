@@ -548,6 +548,14 @@ class PoGoAccount(BaseModel):
     proxy = BooleanField(default=False)
 
     @staticmethod
+    def update_proxy(username, new_proxy):
+        query = (PoGoAccount
+                 .update(proxy=new_proxy)
+                 .where(PoGoAccount.username == username)
+                 .execute()
+                 )        
+
+    @staticmethod
     def get_num_accounts():
         query = (PoGoAccount
                  .select()

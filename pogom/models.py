@@ -545,7 +545,7 @@ class PoGoAccount(BaseModel):
     session = CharField(index=True, default=generate_session())
     time_deactivated = DateTimeField(default=datetime.utcnow())
     last_scan_time = DateTimeField(default=datetime.utcnow())
-    proxy = BooleanField(default=False)
+    proxy = CharField(default='')
 
     @staticmethod
     def update_proxy(username, new_proxy):

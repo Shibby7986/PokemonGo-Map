@@ -37,7 +37,7 @@ from pgoapi import utilities as util
 from pgoapi.exceptions import AuthException, NotLoggedInException
 
 
-from .models import parse_map, Pokemon, hex_bounds, GymDetails, parse_gyms, MainWorker, WorkerStatus, PoGoAccount, deactivate_account
+from .models import parse_map, Pokemon, hex_bounds, GymDetails, parse_gyms, MainWorker, WorkerStatus, PoGoAccount, deactivate_account, update_use_account
 from .transform import generate_location_steps
 from .fakePogoApi import FakePogoApi
 from .utils import now
@@ -248,6 +248,7 @@ def search_overseer_thread(args, method, new_location_queue, pause_bit, encrypti
         # Set proxy to account, using round rubin
         using_proxy = ''
         account['proxy'] = ''
+
         if args.proxy:
             using_proxy = account['proxy'] = args.proxy[i % len(args.proxy)]
             if args.proxy_display.upper() != 'FULL':
@@ -567,6 +568,9 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
 
                 # Make the actual request (finally!)
                 response_dict = map_request(api, step_location, args.jitter)
+
+                # update last scan time
+                update_use_account(account['username'])
 
                 # G'damnit, nothing back. Mark it up, sleep, carry on
                 if not response_dict:

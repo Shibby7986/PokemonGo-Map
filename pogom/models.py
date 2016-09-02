@@ -1038,6 +1038,13 @@ def clean_db_loop(args):
                             (PoGoAccount.active == 1)))
             query.execute()
 
+            # Reset usage on idle accounts
+            query = (PoGoAccount
+                     .update(in_use=False)
+                     .where((PoGoAccount.last_scan_time < (datetime.utcnow() - timedelta(minutes=3))) &
+                            (PoGoAccount.active == 1)))
+            query.execute()
+
             # If desired, clear old pokemon spawns
             if args.purge_data > 0:
                 query = (Pokemon

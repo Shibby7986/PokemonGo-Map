@@ -249,12 +249,12 @@ def search_overseer_thread(args, method, new_location_queue, pause_bit, encrypti
 
         # Set proxy to account, using round rubin
         using_proxy = ''
-        account['proxy'] = False
+        account['proxy'] = ''
         if args.proxy:
             using_proxy = account['proxy'] = args.proxy[count % len(args.proxy)]
             if args.proxy_display.upper() != 'FULL':
                 using_proxy = count % len(args.proxy)                
-        update_proxy(account['username'], account['proxy'])
+        PoGoAccount.update_proxy(account['username'], account['proxy'])
 
         log.debug('Starting search worker thread %d for user %s', count, account['username'])
         workerId = 'Worker {:03}'.format(count)

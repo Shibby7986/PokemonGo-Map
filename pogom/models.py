@@ -581,7 +581,6 @@ class PoGoAccount(BaseModel):
             accounts.append(account)
             if use:
                 accounts[i].update({'session': generate_session()})
-                log.info("setting " + account['username'] + " to in use.")
                 use_account(account['username'], account['session'])
             if i == count - 1:
                 break
@@ -644,16 +643,28 @@ def update_use_account(username):
 def remove_accounts():
     if args.remove_user is not None:
         for user in args.remove_user:
-            log.info("Removing " + user + " from the db.")
+            log.info('Removing {} from the db'.format(username))
             PoGoAccount.delete().where(PoGoAccount.username == user).execute()
 
 
 def use_account(username, new_session):
+	log.info('setting {} to in use'.format(username))
     PoGoAccount.update(in_use=True, session=new_session).where(PoGoAccount.username == username).execute()
 
 
-def reset_account_use():
-    PoGoAccount.update(in_use=False).execute()
+def reset_account_use(username):
+    if username == '*':
+        query = (PoGoAccount
+                 .update(in_use=False, session=generate_session())
+                 .execute()
+                 )
+    else:
+        log.info('setting {} back to available'.format(username))
+        query = (PoGoAccount
+                 .update(in_use=False, session=generate_session())
+                 .where(PoGoAccount.username == username)
+                 .execute()
+                 )
 
 
 def hex_bounds(center, steps):
@@ -1019,6 +1030,14 @@ def clean_db_loop(args):
                             (PoGoAccount.active == 0)))
             query.execute()
 
+            
+            # Reset usage on idle accounts
+            query = (PoGoAccount
+                     .update(in_use=False)
+                     .where((PoGoAccount.last_scan_time < (datetime.utcnow() - timedelta(minutes=3))) &
+                            (PoGoAccount.active == 1)))
+            query.execute()
+
             # If desired, clear old pokemon spawns
             if args.purge_data > 0:
                 query = (Pokemon
@@ -1027,9 +1046,9 @@ def clean_db_loop(args):
                                 (datetime.utcnow() - timedelta(hours=args.purge_data)))))
 
             log.info('Regular database cleaning complete')
-            time.sleep(60)
         except Exception as e:
             log.exception('Exception in clean_db_loop: %s', e)
+        time.sleep(60)
 
 
 def bulk_upsert(cls, data):

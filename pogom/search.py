@@ -249,11 +249,12 @@ def search_overseer_thread(args, method, new_location_queue, pause_bit, encrypti
 
         # Set proxy to account, using round rubin
         using_proxy = ''
-        account.update({'proxy': False})
+        account['proxy'] = False
         if args.proxy:
             using_proxy = account['proxy'] = args.proxy[count % len(args.proxy)]
             if args.proxy_display.upper() != 'FULL':
-                using_proxy = count % len(args.proxy)
+                using_proxy = count % len(args.proxy)                
+        update_proxy(account['username'], account['proxy'])
 
         log.debug('Starting search worker thread %d for user %s', count, account['username'])
         workerId = 'Worker {:03}'.format(count)
@@ -511,6 +512,7 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                 if not PoGoAccount.valid_session(account['username'], account['session']):
                     log.info(account['username'] + " has been used in a new thread.")
                     account = PoGoAccount.get_active_unused(1, True)[0]
+                    using_proxy = account['proxy']
                     break
 
                 # If this account has been messing up too hard, let it rest
@@ -519,6 +521,7 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                     log.error(status['message'])
                     deactivate_account(account['username'])
                     account = PoGoAccount.get_active_unused(1, True)[0]
+                    using_proxy = account['proxy']
                     break
 
                 while pause_bit.is_set():

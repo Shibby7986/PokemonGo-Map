@@ -247,7 +247,7 @@ def search_overseer_thread(args, method, new_location_queue, pause_bit, encrypti
 
         # Set proxy to account, using round rubin
         using_proxy = ''
-        account['proxy'] = False
+        account['proxy'] = ''
         if args.proxy:
             using_proxy = account['proxy'] = args.proxy[i % len(args.proxy)]
             if args.proxy_display.upper() != 'FULL':

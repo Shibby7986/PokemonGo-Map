@@ -544,6 +544,8 @@ class PoGoAccount(BaseModel):
     in_use = BooleanField(default=False)
     session = CharField(index=True, default=generate_session())
     time_deactivated = DateTimeField(default=datetime.utcnow())
+    last_scan_time = DateTimeField(default=datetime.utcnow())
+    proxy = BooleanField(default=False)
 
     @staticmethod
     def get_num_accounts():
@@ -574,7 +576,7 @@ class PoGoAccount(BaseModel):
             accounts.append(account)
             if use:
                 accounts[i].update({'session': generate_session()})
-                log.info("seting " + account['username'] + " to in use.")
+                log.info("setting " + account['username'] + " to in use.")
                 use_account(account['username'], account['session'])
             if i == count - 1:
                 break
@@ -604,15 +606,29 @@ def insert_accounts():
             query = PoGoAccount.create(username=account['username'], password=account['password'], auth_service=account['auth_service'])
             log.info("Added " + account['username'])
         except:
-            log.info(account['username'] + " already exists reseting password and status")
-            query = PoGoAccount.update(password=account['password'], auth_service=account['auth_service'], active=True).where(PoGoAccount.username == account['username'])
-            query.execute()
-
+            done = False
+            while not done:
+                try:
+                    log.info(account['username'] + " already exists reseting password and status")
+                    query = PoGoAccount.update(password=account['password'], auth_service=account['auth_service'], active=True).where(PoGoAccount.username == account['username'])
+                    query.execute()
+                    done = True
+                except:
+                    log.info("Issue updating accounts, trying again")
+    
 
 def deactivate_account(faulty_account):
     log.info("Deactivating " + faulty_account)
     query = PoGoAccount.update(active=False, in_use=False, time_deactivated=datetime.utcnow()).where(PoGoAccount.username == faulty_account)
     query.execute()
+
+
+def update_use_account(account):
+    query = (PoGoAccount
+             .update(in_use=True, last_scan_time=datetime.utcnow())
+             .where(PoGoAccount.username == account)
+             .execute()
+             )
 
 
 def remove_accounts():

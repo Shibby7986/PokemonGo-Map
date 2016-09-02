@@ -584,6 +584,7 @@ class PoGoAccount(BaseModel):
                 use_account(account['username'], account['session'])
             if i == count - 1:
                 break
+
         return accounts
 
     @staticmethod
@@ -643,7 +644,7 @@ def update_use_account(username):
 def remove_accounts():
     if args.remove_user is not None:
         for user in args.remove_user:
-            log.info('Removing {} from the db'.format(username))
+            log.info('Removing {} from the db'.format(user))
             PoGoAccount.delete().where(PoGoAccount.username == user).execute()
 
 
@@ -1029,7 +1030,6 @@ def clean_db_loop(args):
                      .where((PoGoAccount.time_deactivated < (datetime.utcnow() - timedelta(minutes=120))) &
                             (PoGoAccount.active == 0)))
             query.execute()
-
             
             # Reset usage on idle accounts
             query = (PoGoAccount

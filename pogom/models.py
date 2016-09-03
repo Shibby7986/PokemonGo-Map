@@ -550,7 +550,10 @@ class PoGoAccount(BaseModel):
 
     @staticmethod
     def update_proxy(username, new_proxy):
-        PoGoAccount.update(proxy=new_proxy).where(PoGoAccount.username == username).execute()
+        query = (PoGoAccount
+                 .update(proxy=new_proxy)
+                 .where(PoGoAccount.username == username))
+        query.execute()
 
     @staticmethod
     def get_num_accounts():
@@ -611,7 +614,10 @@ class PoGoAccount(BaseModel):
         for account in query:
             if not account['in_use']:  # If the account is not set to in_use recreate the session
                 log.info('usage was reset refreshing session')
-                PoGoAccount.update(in_use=True, session=current_session).where(PoGoAccount.username == username).execute()
+                query = (PoGoAccount
+                         .update(in_use=True, session=current_session)
+                         .where(PoGoAccount.username == username))
+                query.execute()
             return account['session'] == current_session
 
 
@@ -619,14 +625,19 @@ def insert_accounts():
     for account in args.accounts:
         log.info("Checking " + account['username'])
         try:
-            PoGoAccount.create(username=account['username'], password=account['password'], auth_service=account['auth_service'])
+            query = (PoGoAccount
+                     .create(username=account['username'], password=account['password'], auth_service=account['auth_service']))
+            query.execute()
             log.info("Added " + account['username'])
         except:
             done = False
             while not done:
                 try:
                     log.info(account['username'] + " already exists reseting password and status")
-                    PoGoAccount.update(password=account['password'], auth_service=account['auth_service'], active=True).where(PoGoAccount.username == account['username']).execute()
+                    query = (PoGoAccount
+                             .update(password=account['password'], auth_service=account['auth_service'], active=True)
+                             .where(PoGoAccount.username == account['username']))
+                    query.execute()
                     done = True
                 except:
                     log.info("Issue updating accounts, trying again")
@@ -634,23 +645,35 @@ def insert_accounts():
 
 def deactivate_account(faulty_account):
     log.info("Deactivating " + faulty_account)
-    PoGoAccount.update(active = False, in_use=False, time_deactivated=datetime.utcnow()).where(PoGoAccount.username == faulty_account).execute()
+    query = (PoGoAccount
+             .update(active = False, in_use=False, time_deactivated=datetime.utcnow())
+             .where(PoGoAccount.username == faulty_account))
+    query.execute()
 
 
 def update_use_account(username):
-    PoGoAccount.update(in_use = True, last_scan_time=datetime.utcnow()).where(PoGoAccount.username == username).execute()
+    query = (PoGoAccount
+             .update(in_use = True, last_scan_time=datetime.utcnow())
+             .where(PoGoAccount.username == username))
+    query.execute()
 
 	
 def remove_accounts():
     if args.remove_user is not None:
         for user in args.remove_user:
             log.info('Removing {} from the db'.format(user))
-            PoGoAccount.delete().where(PoGoAccount.username == user).execute()
+            query = (PoGoAccount
+                     .delete()
+                     .where(PoGoAccount.username == user))
+            query.execute()
 
 
 def use_account(username, new_session):
-	log.info('setting {} to in use'.format(username))
-    PoGoAccount.update(in_use=True, session=new_session).where(PoGoAccount.username == username).execute()
+    log.info('setting {} to in use'.format(username))
+    query = (PoGoAccount
+             .update(in_use=True, session=new_session)
+             .where(PoGoAccount.username == username))
+    query.execute()
 
 
 def reset_account_use(username):
@@ -752,7 +775,7 @@ def parse_map(args, map_dict, step_location, db_update_queue, wh_update_queue):
                     'active_fort_modifier': active_fort_modifier
                 }
 
-                # Send all pokéstops to webhooks
+                # Send all pokestops to webhooks
                 if args.webhooks and not args.webhook_updates_only:
                     # Explicitly set 'webhook_data', in case we want to change the information pushed to webhooks,
                     # similar to above and previous commits.

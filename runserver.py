@@ -163,7 +163,6 @@ def main():
     create_tables(db)
 
     app.set_current_location(position)
-reset_account_use
     # Add and remove accounts as per args
     if args.username is not None:
         insert_accounts()

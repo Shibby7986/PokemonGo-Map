@@ -576,12 +576,10 @@ class PoGoAccount(BaseModel):
                 new_distance, new_speed, new_sleep = calculate_speed_sleep(location,(test_account['last_latitude'], test_account['last_longitude']), test_account['last_scan_time'], args)
                 if sleep > new_sleep:
                     new_account = test_account
-                    distance = new_distance
                     sleep = new_sleep
-                if sleep == new_sleep:
-                    if distance > new_distance:
-                        new_account = test_account
-                        distance = new_distance
+                elif sleep == new_sleep and distance > new_distance:
+                    new_account = test_account
+                    distance = new_distance
                     
         if new_account:
             reset_account_use(current_account['username'])
